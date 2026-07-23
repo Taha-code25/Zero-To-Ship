@@ -1,0 +1,34 @@
+{
+    "posts": {
+        "1": {
+            "post_id": 1,
+            "title": "Gaming Laptop",
+            "description": "RTX 3060",
+            "owner_id": 15,
+            "status": "Open"
+        },
+        "2": {
+            "post_id": 2,
+            "title": "iPhone 13",
+            "description": "128GB Blue",
+            "owner_id": 7,
+            "status": "Open"
+        }
+    },
+    "offers": {
+        "101": {
+            "offer_id": 101,
+            "post_id": 1,
+            "proposer_id": 20,
+            "offered_item_details": "PlayStation 5 + Controller",
+            "turn_holder_id": 15
+        },
+        "102": {
+            "offer_id": 102,
+            "post_id": 1,
+            "proposer_id": 25,
+            "offered_item_details": "MacBook Air M1",
+            "turn_holder_id": 15
+        }
+    }
+}
