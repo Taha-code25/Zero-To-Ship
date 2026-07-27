@@ -13,6 +13,13 @@
             "description": "128GB Blue",
             "owner_id": 7,
             "status": "Open"
+        },
+        "3": {
+            "post_id": 3,
+            "title": "HP i5 11th gen",
+            "description": "mint condition",
+            "owner_id": 1,
+            "status": "Open"
         }
     },
     "offers": {
@@ -29,6 +36,15 @@
             "proposer_id": 25,
             "offered_item_details": "MacBook Air M1",
             "turn_holder_id": 15
+        }
+    },
+    "users": {
+        "1": {
+            "id": 1,
+            "username": "taha",
+            "email": "faisaltaha268@gmail.com",
+            "hashed_password": "$2b$12$EGayLuXVNDJXBUccVxdBIODLsHD0H.nIsoT7hJfYovfLv7.KwqyLa",
+            "created_at": "2026-07-27T10:31:02.667374+00:00"
         }
     }
 }

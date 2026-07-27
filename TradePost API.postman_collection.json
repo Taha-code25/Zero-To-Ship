@@ -1,0 +1,484 @@
+{
+	"info": {
+		"name": "TradePost API",
+		"description": "Collection demonstrating the full auth workflow as specified in the assignment.\n\nFlow:\n1. Register a new user\n2. Login to get JWT\n3. Copy JWT to all protected endpoints\n4. Create a post (owner_id from JWT)\n5. List all posts\n6. Update own post\n7. Delete own post\n8. Try editing someone else\u2019s post \u2192 403 Forbidden",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		},
+		{
+			"key": "jwt",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "my_post_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "other_post_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Register User A",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 201 Created\", () => {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"user_a_id\", json.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"alice\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/register",
+					"host": ["{{base_url}}"],
+					"path": ["register"]
+				}
+			}
+		},
+		{
+			"name": "2. Register User B",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 201 Created\", () => {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"user_b_id\", json.id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"bob\",\n  \"email\": \"bob@example.com\",\n  \"password\": \"secret456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/register",
+					"host": ["{{base_url}}"],
+					"path": ["register"]
+				}
+			}
+		},
+		{
+			"name": "3. Login as Alice → get JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200 OK\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"jwt\", json.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"alice\",\n  \"password\": \"secret123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": ["{{base_url}}"],
+					"path": ["login"]
+				}
+			}
+		},
+		{
+			"name": "4. GET /me (verify JWT works)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200 OK\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Username is alice\", () => {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.username).to.eql(\"alice\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/me",
+					"host": ["{{base_url}}"],
+					"path": ["me"]
+				}
+			}
+		},
+		{
+			"name": "5. Alice creates a post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 201 Created\", () => {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"my_post_id\", json.post_id);",
+							"",
+							"pm.test(\"owner_id matches Alice's id\", () => {",
+							"    pm.expect(json.owner_id).to.eql(",
+							"        Number(pm.collectionVariables.get(\"user_a_id\"))",
+							"    );",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Gaming Laptop\",\n  \"description\": \"RTX 3060, 16GB RAM\",\n  \"status\": \"Open\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/posts",
+					"host": ["{{base_url}}"],
+					"path": ["posts"]
+				}
+			}
+		},
+		{
+			"name": "6. Login as Bob → get JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200 OK\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"jwt\", json.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"bob\",\n  \"password\": \"secret456\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": ["{{base_url}}"],
+					"path": ["login"]
+				}
+			}
+		},
+		{
+			"name": "7. Bob creates a post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 201 Created\", () => {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"other_post_id\", json.post_id);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"iPhone 13\",\n  \"description\": \"128GB Blue\",\n  \"status\": \"Open\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/posts",
+					"host": ["{{base_url}}"],
+					"path": ["posts"]
+				}
+			}
+		},
+		{
+			"name": "8. Login as Alice again → get JWT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200 OK\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const json = pm.response.json();",
+							"pm.collectionVariables.set(\"jwt\", json.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\": \"alice\",\n  \"password\": \"secret123\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/login",
+					"host": ["{{base_url}}"],
+					"path": ["login"]
+				}
+			}
+		},
+		{
+			"name": "9. GET /posts (list all)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200 OK\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/posts",
+					"host": ["{{base_url}}"],
+					"path": ["posts"]
+				}
+			}
+		},
+		{
+			"name": "10. Alice updates her own post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 200 OK\", () => {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Title updated\", () => {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.title).to.eql(\"Gaming Laptop (Updated)\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Gaming Laptop (Updated)\",\n  \"status\": \"Negotiating\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/posts/{{my_post_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["posts", "{{my_post_id}}"]
+				}
+			}
+		},
+		{
+			"name": "11. Alice tries to edit Bob's post → 403",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 403 Forbidden\", () => {",
+							"    pm.response.to.have.status(403);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Hacked!\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/posts/{{other_post_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["posts", "{{other_post_id}}"]
+				}
+			}
+		},
+		{
+			"name": "12. Alice tries to delete Bob's post → 403",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 403 Forbidden\", () => {",
+							"    pm.response.to.have.status(403);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/posts/{{other_post_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["posts", "{{other_post_id}}"]
+				}
+			}
+		},
+		{
+			"name": "13. Alice deletes her own post",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status 204 No Content\", () => {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/posts/{{my_post_id}}",
+					"host": ["{{base_url}}"],
+					"path": ["posts", "{{my_post_id}}"]
+				}
+			}
+		}
+	]
+}
